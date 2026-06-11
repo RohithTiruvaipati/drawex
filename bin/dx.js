@@ -240,27 +240,33 @@ function cmdConfig() {
 
 function cmdInstallWrapper() {
   console.log(`
-${bold("  Install the claude wrapper")}
+${bold("  Install the Claude Wrapper for Auto-Tracking")}
 ${dim("  " + hr())}
 
-  The wrapper replaces the ${cyan("claude")} command in your terminal.
-  It runs the real Claude Code, captures output, logs usage,
-  and enforces your spending limit automatically.
+  To automatically track limits and spend, alias the ${cyan("claude")} command
+  to ${cyan("dx-wrap")}.
 
-${bold("  Step 1 — Add to your shell config (~/.zshrc or ~/.bashrc):")}
+${bold("  Step 1 — Open your shell config file:")}
+  • For macOS Zsh (default): edit ${cyan("~/.zshrc")}
+  • For Bash: edit ${cyan("~/.bashrc")}
+
+${bold("  Step 2 — Add these two lines at the end of the file:")}
 
     ${cyan('export DRAWEX_REAL_CLAUDE="$(which claude)"')}
     ${cyan('alias claude="dx-wrap"')}
 
-${bold("  Step 2 — Reload your shell:")}
+${bold("  Step 3 — Reload your terminal configuration:")}
 
-    ${cyan("source ~/.zshrc")}
+    ${cyan("source ~/.zshrc")}   ${dim("(or source ~/.bashrc)")}
+
+${bold("  Where to find your data:")}
+  • Configurations:   ${white("~/.drawex/config.json")}
+  • Session history:  ${white("~/.drawex/usage.json")}
 
 ${bold("  How it works:")}
-  • Every time you run ${cyan("claude")} the wrapper checks your limit first
-  • If you're at ${yellow("75%")} or ${yellow("90%")} it shows a warning after the session
-  • If you're at ${red("100%")} it ${bold("blocks")} the command before Claude even runs
-  • Use ${cyan("claude --force")} to override the block for urgent work
+  • Every time you run ${cyan("claude")}, it runs ${cyan("dx-wrap")} behind the scenes.
+  • It checks your limits first and blocks execution if you are at ${red("100%")}.
+  • To bypass a block in an emergency, run: ${cyan("claude --force <your prompt>")}
 
 `);
 }

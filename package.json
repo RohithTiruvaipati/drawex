@@ -15,9 +15,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RohithTiruvaipati/ccusage"
+    "url": "https://github.com/RohithTiruvaipati/drawex"
   },
-  "homepage": "https://github.com/RohithTiruvaipati/ccusage#readme",
+  "homepage": "https://github.com/RohithTiruvaipati/drawex#readme",
   "engines": {
     "node": ">=18"
   },

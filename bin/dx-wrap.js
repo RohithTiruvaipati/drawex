@@ -15,9 +15,8 @@ import { printWarningBanner } from "../lib/display.js";
 // ─── Find real claude binary ──────────────────────────────────────────────────
 function findRealClaude() {
   if (process.env.DRAWEX_REAL_CLAUDE) return process.env.DRAWEX_REAL_CLAUDE;
-  if (process.env.CCUSAGE_REAL_CLAUDE) return process.env.CCUSAGE_REAL_CLAUDE;
   try {
-    return execFileSync("sh", ["-c", "which -a claude 2>/dev/null | grep -v 'ccusage' | grep -v 'dx-wrap' | grep -v 'drawex' | grep -v 'dx' | head -1"], {
+    return execFileSync("sh", ["-c", "which -a claude 2>/dev/null | grep -v 'dx-wrap' | grep -v 'drawex' | grep -v 'dx' | head -1"], {
       encoding: "utf8",
     }).trim() || "claude";
   } catch {
