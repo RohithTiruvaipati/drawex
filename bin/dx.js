@@ -290,6 +290,7 @@ ${dim("  " + hr())}
   ${cyan("dx reset [--confirm]")}             Clear all usage data
   ${cyan("dx config")}                        Show current config
   ${cyan("dx install-wrapper")}               How to set up auto-tracking
+  ${cyan("dx-wrap [args]")}                   Run Claude Code with automatic limits/tracking
 
   ${bold("Limit behavior:")}
   ${green("●")} 0–50%   No interruption

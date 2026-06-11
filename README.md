@@ -128,6 +128,7 @@ dx log --input 1000 --output 500  Manually log by token count
 dx reset [--confirm]              Clear all usage history (keeps config)
 dx config                         Show current limit settings
 dx install-wrapper                Step-by-step wrapper setup guide
+dx-wrap [args]                    Run Claude Code with automatic limits/tracking
 ```
 
 ---
