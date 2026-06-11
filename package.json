@@ -1,0 +1,25 @@
+{
+  "name": "drawex",
+  "version": "1.0.0",
+  "description": "Claude Code spending limits and hard enforcement for AI coding agents",
+  "type": "module",
+  "bin": {
+  "dx": "./bin/dx.js",
+  "dx-wrap": "./bin/dx-wrap.js"
+  },
+  "scripts": {
+    "install-tool": "npm install -g ."
+  },
+  "keywords": ["claude", "claude-code", "anthropic", "usage", "spending", "cli"],
+  "author": "Rohith Tiruvaipati and Claude",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RohithTiruvaipati/ccusage"
+  },
+  "homepage": "https://github.com/RohithTiruvaipati/ccusage#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
