@@ -1,6 +1,6 @@
 {
   "name": "drawex",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Claude Code spending limits and hard enforcement for AI coding agents",
   "type": "module",
   "bin": {
