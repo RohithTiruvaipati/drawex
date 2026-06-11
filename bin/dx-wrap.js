@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * claude-wrapper.js — drop-in replacement for the `claude` command
+ * dx-wrap.js — drop-in replacement for the `claude` command
  *
  * Setup (add to ~/.zshrc or ~/.bashrc):
- *   export CCUSAGE_REAL_CLAUDE="$(which claude)"
- *   alias claude="node /path/to/ccusage/bin/claude-wrapper.js"
+ *   export DRAWEX_REAL_CLAUDE="$(which claude)"
+ *   alias claude="dx-wrap"
  */
 
 import { spawn, execFileSync } from "child_process";
@@ -14,9 +14,10 @@ import { printWarningBanner } from "../lib/display.js";
 
 // ─── Find real claude binary ──────────────────────────────────────────────────
 function findRealClaude() {
+  if (process.env.DRAWEX_REAL_CLAUDE) return process.env.DRAWEX_REAL_CLAUDE;
   if (process.env.CCUSAGE_REAL_CLAUDE) return process.env.CCUSAGE_REAL_CLAUDE;
   try {
-    return execFileSync("sh", ["-c", "which -a claude 2>/dev/null | grep -v 'ccusage' | head -1"], {
+    return execFileSync("sh", ["-c", "which -a claude 2>/dev/null | grep -v 'ccusage' | grep -v 'dx-wrap' | grep -v 'drawex' | grep -v 'dx' | head -1"], {
       encoding: "utf8",
     }).trim() || "claude";
   } catch {
@@ -92,10 +93,10 @@ child.on("close", (exitCode) => {
 
 child.on("error", (err) => {
   if (err.code === "ENOENT") {
-    console.error(`\nccusage: cannot find claude binary at "${REAL_CLAUDE}"`);
-    console.error(`Set CCUSAGE_REAL_CLAUDE to the full path of your claude install.\n`);
+    console.error(`\ndrawex: cannot find claude binary at "${REAL_CLAUDE}"`);
+    console.error(`Set DRAWEX_REAL_CLAUDE to the full path of your claude install.\n`);
   } else {
-    console.error(`\nccusage wrapper error: ${err.message}\n`);
+    console.error(`\ndrawex wrapper error: ${err.message}\n`);
   }
   process.exit(1);
 });

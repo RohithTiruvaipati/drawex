@@ -1,4 +1,4 @@
-# ccusage
+# drawex
 
 > Track your Claude Code spending. Get warned before you overspend. Get blocked when you do.
 
@@ -21,7 +21,7 @@ A lightweight CLI tool that wraps the `claude` command, logs every session's cos
 
 ## Why
 
-Claude Code doesn't expose per-session cost tracking or spending limits natively — especially relevant at enterprise scale where daily usage can compound quickly. `ccusage` fills that gap with zero cloud dependency: everything lives in `~/.ccusage/` on your machine.
+Claude Code doesn't expose per-session cost tracking or spending limits natively — especially relevant at enterprise scale where daily usage can compound quickly. `drawex` fills that gap with zero cloud dependency: everything lives in `~/.drawex/` on your machine.
 
 ---
 
@@ -29,15 +29,21 @@ Claude Code doesn't expose per-session cost tracking or spending limits natively
 
 **Requirements:** Node.js 18+
 
+Install globally directly from npm:
 ```bash
-git clone https://github.com/<your-username>/ccusage
-cd ccusage
+npm install -g drawex
+```
+
+Or install from source for development:
+```bash
+git clone https://github.com/RohithTiruvaipati/drawex
+cd drawex
 npm install -g .
 ```
 
 Verify:
 ```bash
-ccusage --help
+dx --help
 ```
 
 ---
@@ -46,15 +52,15 @@ ccusage --help
 
 ```bash
 # 1. Set a limit
-ccusage set-limit --daily 0.40
-ccusage set-limit --weekly 6.00
-ccusage set-limit --monthly 30.00
+dx set-limit --daily 0.40
+dx set-limit --weekly 6.00
+dx set-limit --monthly 30.00
 
 # 2. Check your usage anytime
-ccusage status
+dx status
 
 # 3. See session history
-ccusage history
+dx history
 ```
 
 ---
@@ -63,19 +69,16 @@ ccusage history
 
 The wrapper sits in front of the real `claude` binary. It checks your limit before every run, captures Claude's output to parse usage, and logs each session automatically.
 
-**Step 1 — Find your claude binary:**
+**Step 1 — Add to your shell config** (`~/.zshrc` or `~/.bashrc`):
+
+Since `drawex` installs `dx-wrap` globally, you can just alias the `claude` command directly to it:
+
 ```bash
-which claude
-# /usr/local/bin/claude
+export DRAWEX_REAL_CLAUDE="$(which claude)"
+alias claude="dx-wrap"
 ```
 
-**Step 2 — Add to your shell config** (`~/.zshrc` or `~/.bashrc`):
-```bash
-export CCUSAGE_REAL_CLAUDE="/usr/local/bin/claude"
-alias claude="node $(npm root -g)/ccusage/bin/claude-wrapper.js"
-```
-
-**Step 3 — Reload:**
+**Step 2 — Reload your shell:**
 ```bash
 source ~/.zshrc
 ```
@@ -101,8 +104,8 @@ When blocked:
    Spent $0.4231 / $0.40 today (105.8%)
 
    To override:  claude --force <your prompt>
-   To reset:     ccusage reset
-   Raise limit:  ccusage set-limit --daily <amount>
+   To reset:     dx reset
+   Raise limit:  dx set-limit --daily <amount>
 ```
 
 For urgent work, bypass the block with:
@@ -115,16 +118,16 @@ claude --force "fix this production bug"
 ## Commands
 
 ```
-ccusage status                         Usage bar + stats for your active window
-ccusage set-limit --daily <$>          Set daily spending limit
-ccusage set-limit --weekly <$>         Set weekly spending limit
-ccusage set-limit --monthly <$>        Set monthly spending limit
-ccusage history [--n 20]               Show recent sessions (default: 15)
-ccusage log --cost 0.012               Manually log a session by cost
-ccusage log --input 1000 --output 500  Manually log by token count
-ccusage reset [--confirm]              Clear all usage history (keeps config)
-ccusage config                         Show current limit settings
-ccusage install-wrapper                Step-by-step wrapper setup guide
+dx status                         Usage bar + stats for your active window
+dx set-limit --daily <$>          Set daily spending limit
+dx set-limit --weekly <$>         Set weekly spending limit
+dx set-limit --monthly <$>        Set monthly spending limit
+dx history [--n 20]               Show recent sessions (default: 15)
+dx log --cost 0.012               Manually log a session by cost
+dx log --input 1000 --output 500  Manually log by token count
+dx reset [--confirm]              Clear all usage history (keeps config)
+dx config                         Show current limit settings
+dx install-wrapper                Step-by-step wrapper setup guide
 ```
 
 ---
@@ -134,27 +137,33 @@ ccusage install-wrapper                Step-by-step wrapper setup guide
 If you prefer not to use the wrapper, log sessions yourself after each `claude` run:
 
 ```bash
-ccusage log --cost 0.0234
-ccusage log --input 5000 --output 1200 --model claude-sonnet-4
-ccusage log --cost 0.01 --note "refactored auth module"
+dx log --cost 0.0234
+dx log --input 5000 --output 1200 --model claude-sonnet-4
+dx log --cost 0.01 --note "refactored auth module"
 ```
 
 ---
 
-## How Usage is Captured
+## How it Works & Global Usage
 
+### How Usage is Captured
 Claude Code prints a cost/token summary at the end of each session:
 ```
 Cost: $0.0123 (1,234 input, 567 output tokens)
 ```
 
-The wrapper captures this line from Claude's output, parses it, and writes a session record to `~/.ccusage/usage.json`. Your conversation content is never read or stored — only the cost metadata.
+The `dx-wrap` wrapper captures this line from Claude's output, parses it, and writes a session record to `~/.drawex/usage.json`. Your conversation content is never read or stored — only the cost metadata.
+
+### Running Globally in Any Terminal / Folder
+*   **Yes, it works everywhere.** Because the `claude` alias is defined in your shell config (`~/.zshrc` or `~/.bashrc`), it will load in **any** terminal instance.
+*   The config and usage database are stored in `~/.drawex/` (your home directory), so all terminals write to and read from the same central location.
+*   **Note:** If you run Claude from an IDE terminal or a script that does not source your shell profile/aliases, it might bypass the alias and call the real `claude` binary directly. In this case, `drawex` won't capture the usage, and your status will remain unchanged (e.g. at `0.00`). Make sure your execution environment loads your shell configuration.
 
 ---
 
 ## Data & Privacy
 
-- All data is stored locally in `~/.ccusage/`
+- All data is stored locally in `~/.drawex/`
 - `config.json` — your limit settings
 - `usage.json` — session history (timestamps, token counts, costs)
 - No network requests, no telemetry, no accounts

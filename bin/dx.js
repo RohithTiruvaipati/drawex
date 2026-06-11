@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * ccusage — Claude Code usage tracker
+ * drawex — Claude Code usage tracker
  *
  * Commands:
- *   ccusage status                  Show usage bar + stats
- *   ccusage set-limit --daily 0.40  Set spending limit
- *   ccusage history [--n 20]        Show recent sessions
- *   ccusage log --cost 0.012 ...    Manually log a session
- *   ccusage reset                   Clear usage data
- *   ccusage config                  Show current config
- *   ccusage install-wrapper         Print wrapper install instructions
+ *   dx status                  Show usage bar + stats
+ *   dx set-limit --daily 0.40  Set spending limit
+ *   dx history [--n 20]        Show recent sessions
+ *   dx log --cost 0.012 ...    Manually log a session
+ *   dx reset                   Clear usage data
+ *   dx config                  Show current config
+ *   dx install-wrapper         Print wrapper install instructions
  */
 
 import { loadConfig, saveConfig, loadUsage, saveUsage, appendSession, DATA_DIR } from "../lib/store.js";
@@ -46,12 +46,12 @@ function cmdStatus() {
 
   if (!config.mode || !config.limit) {
     console.log("");
-    console.log(bold(cyan("  ccusage — Claude Code Usage Tracker")));
+    console.log(bold(cyan("  drawex — Claude Code Usage Tracker")));
     console.log(dim("  No limit configured yet.\n"));
     console.log("  Get started:");
-    console.log(cyan("    ccusage set-limit --daily 0.40"));
-    console.log(cyan("    ccusage set-limit --weekly 6.00"));
-    console.log(cyan("    ccusage set-limit --monthly 30.00"));
+    console.log(cyan("    dx set-limit --daily 0.40"));
+    console.log(cyan("    dx set-limit --weekly 6.00"));
+    console.log(cyan("    dx set-limit --monthly 30.00"));
     console.log("");
     return;
   }
@@ -112,8 +112,8 @@ function cmdSetLimit() {
   const chosen = daily ? ["daily", daily] : weekly ? ["weekly", weekly] : monthly ? ["monthly", monthly] : null;
 
   if (!chosen) {
-    console.error(red("Usage: ccusage set-limit --daily <amount> | --weekly <amount> | --monthly <amount>"));
-    console.error(dim("Example: ccusage set-limit --daily 0.40"));
+    console.error(red("Usage: dx set-limit --daily <amount> | --weekly <amount> | --monthly <amount>"));
+    console.error(dim("Example: dx set-limit --daily 0.40"));
     process.exit(1);
   }
 
@@ -136,7 +136,7 @@ function cmdSetLimit() {
   console.log(dim(`  Warnings at: 50% · 75% · 90%`));
   console.log(dim(`  Hard block at: 100% (override with --force)`));
   console.log("");
-  console.log(dim("  Run ccusage status to see your usage bar."));
+  console.log(dim("  Run dx status to see your usage bar."));
   console.log("");
 }
 
@@ -211,7 +211,7 @@ function cmdLog() {
 function cmdReset() {
   if (!hasFlag("--confirm")) {
     console.log(yellow("\n  This will delete all usage history (config/limits kept)."));
-    console.log(dim("  Run: ccusage reset --confirm\n"));
+    console.log(dim("  Run: dx reset --confirm\n"));
     return;
   }
   saveUsage({ sessions: [] });
@@ -226,7 +226,7 @@ function cmdConfig() {
   console.log(bold("  Configuration"));
   console.log(dim("  " + hr()));
   if (!config.mode) {
-    console.log(dim("  No limit set. Run: ccusage set-limit --daily 0.40"));
+    console.log(dim("  No limit set. Run: dx set-limit --daily 0.40"));
   } else {
     const modeWord = config.mode === "daily" ? "day" : config.mode === "weekly" ? "week" : "month";
     console.log(`  ${pad("Mode:", 12)} ${config.mode}`);
@@ -247,24 +247,12 @@ ${dim("  " + hr())}
   It runs the real Claude Code, captures output, logs usage,
   and enforces your spending limit automatically.
 
-${bold("  Step 1 — Find where the real claude binary is:")}
+${bold("  Step 1 — Add to your shell config (~/.zshrc or ~/.bashrc):")}
 
-    ${cyan("which claude")}
+    ${cyan('export DRAWEX_REAL_CLAUDE="$(which claude)"')}
+    ${cyan('alias claude="dx-wrap"')}
 
-${bold("  Step 2 — Create the wrapper script:")}
-
-    Create a file at ${cyan("~/.ccusage/claude-wrapper.sh")} with this content:
-    ${dim("(ccusage will generate this file for you — see below)")}
-
-${bold("  Step 3 — Add to your shell config (~/.zshrc or ~/.bashrc):")}
-
-    ${cyan('export CCUSAGE_REAL_CLAUDE="$(which claude)"')}
-    ${cyan('alias claude="node $(npm root -g)/ccusage/bin/claude-wrapper.js"')}
-
-  Or if you installed ccusage globally:
-    ${cyan('alias claude="ccusage-wrap"')}
-
-${bold("  Step 4 — Reload your shell:")}
+${bold("  Step 2 — Reload your shell:")}
 
     ${cyan("source ~/.zshrc")}
 
@@ -281,21 +269,21 @@ ${bold("  How it works:")}
 
 function cmdHelp() {
   console.log(`
-${bold("  ccusage — Claude Code Usage Tracker")}
+${bold("  drawex — Claude Code Usage Tracker")}
 ${dim("  " + hr())}
 
   ${bold("Commands:")}
 
-  ${cyan("ccusage status")}                        Show usage bar and stats
-  ${cyan("ccusage set-limit --daily <$>")}         Set daily spending limit
-  ${cyan("ccusage set-limit --weekly <$>")}        Set weekly spending limit
-  ${cyan("ccusage set-limit --monthly <$>")}       Set monthly spending limit
-  ${cyan("ccusage history [--n <count>]")}         Show recent sessions (default 15)
-  ${cyan("ccusage log --cost <$>")}                Manually log a session cost
-  ${cyan("ccusage log --input <n> --output <n>")}  Log by token counts
-  ${cyan("ccusage reset [--confirm]")}             Clear all usage data
-  ${cyan("ccusage config")}                        Show current config
-  ${cyan("ccusage install-wrapper")}               How to set up auto-tracking
+  ${cyan("dx status")}                        Show usage bar and stats
+  ${cyan("dx set-limit --daily <$>")}         Set daily spending limit
+  ${cyan("dx set-limit --weekly <$>")}        Set weekly spending limit
+  ${cyan("dx set-limit --monthly <$>")}       Set monthly spending limit
+  ${cyan("dx history [--n <count>]")}         Show recent sessions (default 15)
+  ${cyan("dx log --cost <$>")}                Manually log a session cost
+  ${cyan("dx log --input <n> --output <n>")}  Log by token counts
+  ${cyan("dx reset [--confirm]")}             Clear all usage data
+  ${cyan("dx config")}                        Show current config
+  ${cyan("dx install-wrapper")}               How to set up auto-tracking
 
   ${bold("Limit behavior:")}
   ${green("●")} 0–50%   No interruption
@@ -305,7 +293,7 @@ ${dim("  " + hr())}
   ${red("✖")} 100%    ${bold("Hard block")} — claude won't run
              Override with: ${cyan("claude --force <prompt>")}
 
-  ${dim("Data stored in: ~/.ccusage/")}
+  ${dim("Data stored in: ~/.drawex/")}
 `);
 }
 
