@@ -65,14 +65,23 @@ dx history
 
 ---
 
-## Auto-tracking (Wrapper Setup)
+## Usage (Auto-tracking)
 
-The wrapper sits in front of the real `claude` binary. It checks your limit before every run, captures Claude's output to parse usage, and logs each session automatically.
+To run Claude Code with spending limits and cost-tracking, run the `dx-wrap` command instead of `claude`:
+
+```bash
+dx-wrap
+```
+
+It supports all the standard Claude Code arguments and prompts (e.g., `dx-wrap --model claude-3-5-sonnet` or `dx-wrap "explain this file"`).
+
+---
+
+### Optional: Alias Interception
+
+If you want to keep typing `claude` in your terminal out of muscle memory, you can alias the `claude` command to the tracker:
 
 **Step 1 — Add to your shell config** (`~/.zshrc` or `~/.bashrc`):
-
-Since `drawex` installs `dx-wrap` globally, you can just alias the `claude` command directly to it:
-
 ```bash
 export DRAWEX_REAL_CLAUDE="$(which claude)"
 alias claude="dx-wrap"
@@ -83,7 +92,7 @@ alias claude="dx-wrap"
 source ~/.zshrc
 ```
 
-Now every `claude` call is tracked automatically — no other changes to your workflow.
+Once set up, typing `claude` will automatically route through `dx-wrap` for background limits and cost logging.
 
 ---
 
