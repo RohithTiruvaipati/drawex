@@ -12,8 +12,8 @@ import path from "path";
 import os from "os";
 import { spawn, execFileSync } from "child_process";
 import { loadConfig, appendSession, DATA_DIR } from "../lib/store.js";
-import { getWindowSpend, getAlertLevel, parseClaudeOutput } from "../lib/calc.js";
-import { printWarningBanner } from "../lib/display.js";
+import { getWindowSpend, getAlertLevel, parseClaudeOutput, calcCost } from "../lib/calc.js";
+import { printWarningBanner, bold, red } from "../lib/display.js";
 
 // ─── Find real claude binary ──────────────────────────────────────────────────
 function findRealClaude() {
@@ -66,7 +66,80 @@ const child = spawn(spawnCmd, spawnArgs, {
   env: process.env,
 });
 
+// ─── Real-Time Mid-Session Spending Enforcement ───────────────────────────────
+const CLAUDE_DATA_DIR = path.join(os.homedir(), ".claude");
+const startTime = Date.now();
+const historicalSpend = config.mode ? getWindowSpend(config.mode).cost : 0;
+
+function getActiveSessionFiles(startTimeMs) {
+  const projectsDir = path.join(CLAUDE_DATA_DIR, "projects");
+  if (!fs.existsSync(projectsDir)) return [];
+
+  const filesList = [];
+  function recurse(dir) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
+    catch { return; }
+
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        recurse(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+        try {
+          const stat = fs.statSync(fullPath);
+          if (stat.mtimeMs >= startTimeMs) {
+            filesList.push({ path: fullPath, mtimeMs: stat.mtimeMs });
+          }
+        } catch {}
+      }
+    }
+  }
+
+  recurse(projectsDir);
+  return filesList;
+}
+
+const checkerInterval = setInterval(() => {
+  if (!config.mode || !config.limit || FORCE) return;
+
+  const activeFiles = getActiveSessionFiles(startTime);
+  let currentSessionSpend = 0;
+
+  for (const fileObj of activeFiles) {
+    try {
+      const content = fs.readFileSync(fileObj.path, "utf8");
+      const lines = content.split("\n").filter(l => l.trim());
+      for (const line of lines) {
+        try {
+          const obj = JSON.parse(line);
+          const usage = obj.usage || obj;
+          if (usage && (usage.inputTokens || usage.prompt_tokens || usage.input)) {
+            const input = usage.inputTokens || usage.prompt_tokens || usage.input || 0;
+            const output = usage.outputTokens || usage.completion_tokens || usage.output || 0;
+            const model = obj.model || usage.model || detectModel(claudeArgs) || "default";
+            currentSessionSpend += calcCost(input, output, model);
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+
+  if ((historicalSpend + currentSessionSpend) >= config.limit) {
+    clearInterval(checkerInterval);
+    console.error(bold(red("\n\n╔══════════════════════════════════════════╗")));
+    console.error(bold(red("║  🚫  CLAUDE USAGE LIMIT REACHED (KILLED) ║")));
+    console.error(bold(red("╚══════════════════════════════════════════╝")));
+    console.error(red(`   Spent $${(historicalSpend + currentSessionSpend).toFixed(4)} / $${config.limit.toFixed(2)} limit exceeded mid-session.`));
+    console.error(red("   Terminating session to prevent overspending...\n"));
+    
+    child.kill("SIGKILL");
+  }
+}, 2000);
+
 child.on("close", (exitCode) => {
+  clearInterval(checkerInterval);
+
   let capturedOutput = "";
   if (fs.existsSync(tempLogFile)) {
     try {
@@ -109,6 +182,8 @@ child.on("close", (exitCode) => {
 });
 
 child.on("error", (err) => {
+  clearInterval(checkerInterval);
+
   // Clean up if temp file was created
   if (fs.existsSync(tempLogFile)) {
     try { fs.unlinkSync(tempLogFile); } catch {}
